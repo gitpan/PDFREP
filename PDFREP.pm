@@ -15,7 +15,7 @@ package PDFREP;
 # STARTED                       26th June 2001                                #
 # COMPLETED                                                                   #
 #                                                                             #
-# VERSION                       1.00                                          #
+# VERSION                       1.01                                          #
 #                                                                             #
 # WRITTEN BY                    Trevor Ward                                   #
 #                                                                             #
@@ -29,6 +29,7 @@ package PDFREP;
 # Date        Version    By        Comments                                   #
 #                                                                             #
 # 25/06/2001  1.00       TRW       Initial Version                            #
+# 10/07/2001  1.01       TRW       Added Column offsets                       #
 #-----------------------------------------------------------------------------#
 
 use strict;
@@ -39,13 +40,13 @@ use GD;
 # Exporter set the exporter information for the module                        #
 #-----------------------------------------------------------------------------#
 
-use vars qw($VERSION @ISA @EXPORT);
+use vars qw(@ISA @EXPORT $VERSION);
 
 use Exporter;
 
-@ISA = qw(Exporter);
+$VERSION = '1.01';
 
-$VERSION = '1.00';
+@ISA = qw(Exporter);
 
 #-----------------------------------------------------------------------------#
 # As all parts of this module are required to be used  @EXPORT is used        #
@@ -424,7 +425,7 @@ sub fontset
 # Type of Info                                                                #
 # np = new page                                                               #
 # nl = new line                                                               #
-#                                                                             #
+# nc = new column                                                             #
 #-----------------------------------------------------------------------------#
 
 sub pagedata
@@ -447,6 +448,28 @@ sub pagedata
     if ($ltype eq 'nl')
     {
     	$lcnt = $lcnt - $lfont;
+        $rc   = print TMPFILE "$red $green $blue rg $lcol $nextf Td ($ldata) Tj\n";
+
+        if (!$rc)
+        {
+            return ('0', 'PDFCGI Write TMP File Failure - New Line');
+        }
+    	$rc = print TMPFILE "/$nfont $lfont Tf 1 0 $ital 1 10 $lcnt Tm\n";
+    	
+        if (!$rc)
+        {
+            return ('0', 'PDFCGI Write TMP File Failure - New Line');
+        }
+        if ($lcnt <= 10)
+        {
+            &crashed();
+            
+            return ('0', 'PDFCGI Write Page over Max Lines - Files Deleted');
+        }
+    }
+    if ($ltype eq 'nc')
+    {
+    	$lcnt = $lcnt;
         $rc   = print TMPFILE "$red $green $blue rg $lcol $nextf Td ($ldata) Tj\n";
 
         if (!$rc)

@@ -102,6 +102,10 @@ sub pdftest
     # 1 The type of data passed
     # np = new page
     # nl = new line
+    # nc = new column
+    # Used to enable the columinsation of reports by using the offset field. Will only left
+    # Justify so if require right justify user courier font and space pad front of data.
+    # Allows the usage of different font and colours by column.
     # im = new image
     # You specify one of these as the first parameter passed to identify what your upto.
     # Data is written out one line at a time so try not to exceed the characters.
@@ -131,7 +135,7 @@ sub pdftest
     # occurs like run out of disc space. OK in this example its a bit of a pain but thats life normally
     # this would be a nice loop.
 
-    ($status, $message) = $pdfrep->pagedata('np','0','12','F2','12','0','0','0','0','This is the first bit of text','A4','PO');
+    ($status, $message) = $pdfrep->pagedata('np','0','12','F2','12','0','0','0','0','This is the first bit of text just to prove it to Mel','A4','PO');
 
     if (!$status)
     {
@@ -157,14 +161,28 @@ sub pdftest
         print "$status - $message<BR>\n";
     }
 
-    ($status, $message) = $pdfrep->pagedata('nl','0','12','F1','12','0','0','0','0','This is the third bit of data');
-    ($status, $message) = $pdfrep->pagedata('nl','0','12','F1','12','0','0','0','0','This is the four bit of text');
-    ($status, $message) = $pdfrep->pagedata('nl','0','12','F2','12','0','0','0','0','This is the five bit of text');
-    ($status, $message) = $pdfrep->pagedata('nl','0','12','F1','12','0','0','0','0','This is the six bit of text');
-    ($status, $message) = $pdfrep->pagedata('nl','0','12','F1','12','0','0','0','0','This is the seven bit of text');
-    ($status, $message) = $pdfrep->pagedata('nl','0','12','F1','12','0','0','0','0','This is the eight bit of text');
-    ($status, $message) = $pdfrep->pagedata('nl','0','12','F1','12','0','0','0','0','This is the ninth bit of text');
-    ($status, $message) = $pdfrep->pagedata('nl','0','12','F1','12','0','0','0','0','This is the tenth bit of text');
+    ($status, $message) = $pdfrep->pagedata('nl','0','10','F1','10','0','0','0','0','This is the third bit of data');
+    ($status, $message) = $pdfrep->pagedata('nc','150','10','F1','10','0','0','0','0','This is the four bit of text');
+    ($status, $message) = $pdfrep->pagedata('nc','300','10','F1','10','0','0','0','0','This is the five bit of text');
+    ($status, $message) = $pdfrep->pagedata('nc','450','10','F1','10','0','0','0','0','This is the five bit text 2');
+    ($status, $message) = $pdfrep->pagedata('nl','0','10','F1','10','0','1','0','0','This is the third bit of data');
+    ($status, $message) = $pdfrep->pagedata('nc','150','10','F2','10','0','0','0','0','This is the four bit of text');
+    ($status, $message) = $pdfrep->pagedata('nc','300','10','F2','10','0','0','0','0','This is the five bit of text');
+    ($status, $message) = $pdfrep->pagedata('nl','0','10','F1','10','0','0','0','0','This is the third bit of data');
+    ($status, $message) = $pdfrep->pagedata('nc','150','10','F1','10','0','0','0','0','This is the four bit of text');
+    ($status, $message) = $pdfrep->pagedata('nc','300','10','F1','10','0','0','1','0','This is the five bit of text');
+    ($status, $message) = $pdfrep->pagedata('nl','0','10','F2','10','0','0','0','0','This is the third bit of data');
+    ($status, $message) = $pdfrep->pagedata('nc','150','10','F2','10','0','0','0','0','This is the four bit of text');
+#    ($status, $message) = $pdfrep->pagedata('nc','300','10','F2','10','0','0','0','0','Teo');
+    ($status, $message) = $pdfrep->pagedata('nc','450','10','F1','10','0','1','0','0','FCUK');
+#    ($status, $message) = $pdfrep->pagedata('nl','0','12','F1','12','0','0','0','0','This is the third bit of data');
+#    ($status, $message) = $pdfrep->pagedata('nl','0','12','F1','12','0','0','0','0','This is the four bit of text');
+#    ($status, $message) = $pdfrep->pagedata('nl','0','12','F2','12','0','0','0','0','This is the five bit of text');
+    ($status, $message) = $pdfrep->pagedata('nl','0','10','F1','10','0','0','0','0','This is the six bit of text');
+#    ($status, $message) = $pdfrep->pagedata('nl','0','12','F1','12','0','0','0','0','This is the seven bit of text');
+#    ($status, $message) = $pdfrep->pagedata('nl','0','12','F1','12','0','0','0','0','This is the eight bit of text');
+#    ($status, $message) = $pdfrep->pagedata('nl','0','12','F1','12','0','0','0','0','This is the ninth bit of text');
+#    ($status, $message) = $pdfrep->pagedata('nl','0','12','F1','12','0','0','0','0','This is the tenth bit of text');
     ($status, $message) = $pdfrep->pagedata('np','0','12','F2','12','0','0','0','0','This is the first bit of text','A4','PO');
 
     # The following code uses the Chart module from CPAN to generate a PNG file which is a graph

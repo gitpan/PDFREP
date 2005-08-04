@@ -12,10 +12,10 @@ package PDFREP;
 #                                                                             #
 # DEVELOPMENT                                                                 #
 #                                                                             #
-# STARTED                       26th June 2001                                #
-# COMPLETED                                                                   #
+# STARTED                       26th June   2001                              #
+# COMPLETED                     4th  August 2005                              #
 #                                                                             #
-# VERSION                       1.01                                          #
+# VERSION                       2.00                                          #
 #                                                                             #
 # WRITTEN BY                    Trevor Ward                                   #
 #                                                                             #
@@ -30,6 +30,15 @@ package PDFREP;
 #                                                                             #
 # 25/06/2001  1.00       TRW       Initial Version                            #
 # 10/07/2001  1.01       TRW       Added Column offsets                       #
+# 12/09/2001  1.02       TRW       Added text () escaping                     #
+# 10/10/2001  1.03       TRW       Removed backslashes from text except octal #
+# 29/01/2002  1.04       TRW       Added columns for Graphics   cm            #
+# 16/02/2003  1.05       TRW       PFS VERSION Removed GD for base system     #
+# 17/03/2003  1.06       TRW       Fixed 100 < 99 Bug                         #
+#-----------------------------------------------------------------------------#
+# Version 2 Updates                                                           #
+#                                                                             #
+# 04/08/2005  2.00       TRW       New Function lcnt for counting lines left  #
 #-----------------------------------------------------------------------------#
 
 use strict;
@@ -44,7 +53,7 @@ use vars qw(@ISA @EXPORT $VERSION);
 
 use Exporter;
 
-$VERSION = '1.01';
+$VERSION = '2.00';
 
 @ISA = qw(Exporter);
 
@@ -61,7 +70,8 @@ $VERSION = '1.01';
               pagedata
               trailer
               writepdf
-              xreftrl);
+              xreftrl
+              lcnt);
               
 #-----------------------------------------------------------------------------#
 # GLOBAL VARIABLES                                                            #
@@ -144,6 +154,15 @@ sub new
 }
 
 #-----------------------------------------------------------------------------#
+# SUB LCNT                                                                    #
+#-----------------------------------------------------------------------------#
+
+sub lcnt
+{
+    return $lcnt;
+}
+
+#-----------------------------------------------------------------------------#
 # SUB HEADING                                                                 #
 #                                                                             #
 # This receives the file name and directory from the calling program and      #
@@ -179,7 +198,7 @@ sub heading
 
     # Set the heading text value this will remain constant
 
-    my $heading = "%PDF-1.0";
+    my $heading = "%PDF-1.3";
     
     # Check the passed parameters contain values return false if not
 
@@ -210,6 +229,7 @@ sub heading
     
     $rc = print PDFFILE "$heading\015\012";
 
+    $offset = 0 if (!$offset);
     $offset = $offset + length($heading) + 2;
     if (!$rc)
     {
@@ -235,21 +255,21 @@ sub heading
 
     if ($title)
     {
-        $outline[$linecnt] = $outline[$linecnt] . "/Title ( $title)";
+        $outline[$linecnt] .= "/Title ( $title)";
         $linecnt++;
     }
     if ($author)
     {
-        $outline[$linecnt] = $outline[$linecnt] . "/Author ( $author)";
+        $outline[$linecnt] .= "/Author ( $author)";
         $linecnt++;
     }
-    $outline[$linecnt] = $outline[$linecnt] . "/Creator (Perlrep Module V1.00 copyright T.R.Ward 2001)";
+    $outline[$linecnt] .= "/Creator (Perlrep Module V1.00 copyright T.R.Ward 2001)";
     $linecnt++;
-    $outline[$linecnt] = $outline[$linecnt] . "/Producer (Perlrep Module V1.00 copyright T.R.Ward 2001)";
+    $outline[$linecnt] .= "/Producer (Perlrep Module V1.00 copyright T.R.Ward 2001)";
     $linecnt++;
-    $outline[$linecnt] = "/CreationDate ( D:$mday-$mon-$year $hour-$min-$sec)";
+    $outline[$linecnt] .= "/CreationDate ( D:$mday-$mon-$year $hour-$min-$sec)";
     $linecnt++;
-    $outline[$linecnt] = "/ModDate ( D:$mday-$mon-$year $hour-$min-$sec)";
+    $outline[$linecnt] .= "/ModDate ( D:$mday-$mon-$year $hour-$min-$sec)";
     $linecnt++;
  
     $outline[$linecnt] = ">>";
@@ -258,7 +278,13 @@ sub heading
       
     # Set the Offset for this object in the offset hash store
     
-    (length($objcount) < 2) ? ($tmpoffs = '0' . $objcount) : ($tmpoffs = $objcount);
+    $tmpoffs = $objcount;
+    
+    while (length($tmpoffs) < 4)
+    {
+        $tmpoffs = "0" . $tmpoffs;
+    }
+    #(length($objcount) < 2) ? ($tmpoffs = '0' . $objcount) : ($tmpoffs = $objcount);
     $pdoffs{$tmpoffs}   = $offset;
     
     # Write out the data to the PDF file check the return code and throw error if failure
@@ -321,7 +347,13 @@ sub catalog
 
     # Set the Offset for this object in the offset hash store
     
-    (length($objcount) < 2) ? ($tmpoffs = '0' . $objcount) : ($tmpoffs = $objcount);
+    $tmpoffs = $objcount;
+    
+    while (length($tmpoffs) < 4)
+    {
+        $tmpoffs = "0" . $tmpoffs;
+    }
+    #(length($objcount) < 2) ? ($tmpoffs = '0' . $objcount) : ($tmpoffs = $objcount);
     $pdoffs{$tmpoffs}   = $offset;
     
     # Write out the data to the PDF file check the return code and throw error if failure
@@ -361,13 +393,18 @@ sub outlines
     $outline[0] = "$objcount 0 obj";
     $outline[1] = "<<";
     $outline[2] = "/Type /Outlines";
-    $outline[3] = "/Count 0";
-    $outline[4] = ">>";
-    $outline[5] = "endobj";
+    $outline[3] = ">>";
+    $outline[4] = "endobj";
 
     # Set the offset for this object using the offset hash
 
-    (length($objcount) < 2) ? ($tmpoffs = '0' . $objcount) : ($tmpoffs = $objcount);
+    $tmpoffs = $objcount;
+    
+    while (length($tmpoffs) < 4)
+    {
+        $tmpoffs = "0" . $tmpoffs;
+    }
+    #(length($objcount) < 2) ? ($tmpoffs = '0' . $objcount) : ($tmpoffs = $objcount);
     $pdoffs{$tmpoffs}   = $offset;
     
     # Write out the data to the PDF file check the return code and throw error if failure
@@ -445,16 +482,35 @@ sub pagedata
 
     # Keep a check on the line count per page current maximum is 38 if over blow away files return error
     
+    # Version 1.03 duplicate all backslashes to remove errors when passed.
+    # Also allow for octal characters to be passed by using a space either end of a three number field
+    
+    $ldata =~ s/\\/\\\\/gis;
+    $ldata =~ s/ \\\\(\d\d\d) /\\$1/gis;
+
+    # End of version 1.03 update
+
+    # Version 1.02 setup the correct values for escaped characters
+    
+    $ldata =~ s/\(/\\\(/gis;
+    $ldata =~ s/\)/\\\)/gis;
+
+    # End of version 1.02 update
+    
+    # Version 2.00 update
+    
+    $ldata =~ s/([\(\)])/\\$1/gis;
+    
     if ($ltype eq 'nl')
     {
-    	$lcnt = $lcnt - $lfont;
+    	  $lcnt = $lcnt - $lfont;
         $rc   = print TMPFILE "$red $green $blue rg $lcol $nextf Td ($ldata) Tj\n";
 
         if (!$rc)
         {
             return ('0', 'PDFCGI Write TMP File Failure - New Line');
         }
-    	$rc = print TMPFILE "/$nfont $lfont Tf 1 0 $ital 1 10 $lcnt Tm\n";
+    	  $rc = print TMPFILE "/$nfont $lfont Tf 1 0 $ital 1 10 $lcnt Tm\n";
     	
         if (!$rc)
         {
@@ -529,6 +585,13 @@ sub pagedata
         $rc = print TMPFILE "IMAGEXXXXXXXXX $ldata $lcnt $lcol\n";
         $lcnt = $lcnt - 20;
     }
+    # 1.04 Added columns for images type CM.
+    if ($ltype eq 'cm')
+    {
+    	my ($pt1,$pt2,$pt3) = split (/\s/, $ldata);
+    	
+        $rc = print TMPFILE "IMAGEXXXXXXXXX $ldata $lcnt $lcol\n";
+    }
     return ('1', "PDFREP Page Data Succesful");
 }
 
@@ -599,14 +662,14 @@ sub writepdf
     my %fontnum;
     my %imagnum;
     my $procset;
-    my $tmpcnt  = '000';
+    my $tmpcnt  = '0000';
     my $tmpobj  = $objcount + 2;
     
     while ($pagecnt > $tmpcnt)
     {
         $pagenum{$tmpcnt} = $tmpobj;
         $tmpcnt++;
-        while (length($tmpcnt) < 3)
+        while (length($tmpcnt) < 4)
         {
             $tmpcnt = "0" . $tmpcnt;
         }
@@ -632,7 +695,13 @@ sub writepdf
     # Update Offset for this object.
 
     $objcount++;
-    (length($objcount) < 2) ? ($tmpoffs = '0' . $objcount) : ($tmpoffs = $objcount);
+    $tmpoffs = $objcount;
+    
+    while (length($tmpoffs) < 4)
+    {
+        $tmpoffs = "0" . $tmpoffs;
+    }
+    #(length($objcount) < 2) ? ($tmpoffs = '0' . $objcount) : ($tmpoffs = $objcount);
     $pdoffs{$tmpoffs}   = $offset;
     $pobjcnt            = $objcount;
     
@@ -647,7 +716,7 @@ sub writepdf
 
     $pdprintline[$lcnt] = "/Kids [";
     
-    my $tmpcnt = 0;
+    $tmpcnt = 0;
     
     foreach $item (sort keys(%pagenum))
     {
@@ -686,7 +755,13 @@ sub writepdf
     while ($pagecnt > $tmpcnt)
     {
         $objcount++;
-        (length($objcount) < 2) ? ($tmpoffs = '0' . $objcount) : ($tmpoffs = $objcount);
+        $tmpoffs = $objcount;
+    
+        while (length($tmpoffs) < 4)
+        {
+            $tmpoffs = "0" . $tmpoffs;
+        }
+        #(length($objcount) < 2) ? ($tmpoffs = '0' . $objcount) : ($tmpoffs = $objcount);
         $pdoffs{$tmpoffs}   = $offset;
         $lcnt              = '0';
         undef @pdprintline;
@@ -717,7 +792,7 @@ sub writepdf
         }
         # Setup the image references for for the page
 
-        my $tmpk = keys (%imagnum);
+        $tmpk = keys (%imagnum);
         if ($tmpk > 0)
         {
             $pdprintline[$lcnt] = $pdprintline[$lcnt] . "/XObject <<";
@@ -776,13 +851,19 @@ sub writepdf
         # So now it's time to write out the page data.
         # Lets get the page data for the current page.
 
-        my $ncnt = $tmpcnt + 1;
+        $ncnt = $tmpcnt + 1;
         
         if ($pt1 eq 'XXXXXXXXXXNEW' && $pt4 eq $ncnt)
         {
             $objcount++;
             $pdlgth = 0;
-            (length($objcount) < 2) ? ($tmpoffs = '0' . $objcount) : ($tmpoffs = $objcount);
+            $tmpoffs = $objcount;
+    
+            while (length($tmpoffs) < 4)
+            {
+                $tmpoffs = "0" . $tmpoffs;
+            }
+            #(length($objcount) < 2) ? ($tmpoffs = '0' . $objcount) : ($tmpoffs = $objcount);
             $pdoffs{$tmpoffs}   = $offset;
    	    $pdprintline[$lcnt] = "endobj";
     	    $lcnt++;
@@ -869,7 +950,13 @@ sub writepdf
         undef @pdprintline;
         $lcnt        = '0';
         $objcount++;
-        (length($objcount) < 2) ? ($tmpoffs = '0' . $objcount) : ($tmpoffs = $objcount);
+        $tmpoffs = $objcount;
+    
+        while (length($tmpoffs) < 4)
+        {
+            $tmpoffs = "0" . $tmpoffs;
+        }
+        #(length($objcount) < 2) ? ($tmpoffs = '0' . $objcount) : ($tmpoffs = $objcount);
         $pdoffs{$tmpoffs}   = $offset;
         
         $pdprintline[$lcnt] = "$objcount 0 obj";
@@ -909,8 +996,8 @@ sub writepdf
         {
             $myImage = newFromPng GD::Image(\*INIMAGE) || die;
         }
-        my $imout = $myImage->jpeg(600);
-        my $imlgth = length($imout);
+        $imout = $myImage->jpeg(600);
+        $imlgth = length($imout);
 
         close (INIMAGE);
         
@@ -944,7 +1031,14 @@ sub writepdf
     undef @pdprintline;
     $lcnt        = '0';
     $objcount++;
-    (length($objcount) < 2) ? ($tmpoffs = '0' . $objcount) : ($tmpoffs = $objcount);
+    
+    $tmpoffs = $objcount;
+    
+    while (length($tmpoffs) < 4)
+    {
+    	$tmpoffs = "0" . $tmpoffs;
+    }
+    #(length($objcount) < 2) ? ($tmpoffs = '0' . $objcount) : ($tmpoffs = $objcount);
     $pdoffs{$tmpoffs}   = $offset;
                 
     $pdprintline[$lcnt] = "$objcount 0 obj";
@@ -973,7 +1067,13 @@ sub writepdf
         undef @pdprintline;
         $lcnt        = '0';
         $objcount++;
-        (length($objcount) < 2) ? ($tmpoffs = '0' . $objcount) : ($tmpoffs = $objcount);
+        $tmpoffs = $objcount;
+    
+        while (length($tmpoffs) < 4)
+        {
+            $tmpoffs = "0" . $tmpoffs;
+        }
+        #(length($objcount) < 2) ? ($tmpoffs = '0' . $objcount) : ($tmpoffs = $objcount);
         $pdoffs{$tmpoffs}   = $offset;
                 
         $pdprintline[$lcnt] = "$objcount 0 obj";
@@ -988,7 +1088,10 @@ sub writepdf
         $lcnt++;
         $pdprintline[$lcnt] = "/BaseFont /$fontstr{$item}";
         $lcnt++;
-        $pdprintline[$lcnt] = "/Encoding /MacRomanEncoding";
+
+        # Version 2 make more usable Encoding.
+#        $pdprintline[$lcnt] = "/Encoding /MacRomanEncoding";
+        $pdprintline[$lcnt] = "/Encoding /WinAnsiEncoding";
         $lcnt++;
         $pdprintline[$lcnt] = ">>";
         $lcnt++;
@@ -1040,10 +1143,13 @@ sub xreftrl
     $startxref = $offset;
     $xrefdata[2] = "0000000000 65535 f";
     $tlcnt++;
+
+#   Version 2 resolve aany number of pages.
     
-    foreach $item (sort keys(%pdoffs))
+#    foreach $item (sort keys(%pdoffs))
+    foreach $item (sort {$a <=> $b} keys(%pdoffs))
     {
-    	my $tdata = $pdoffs{$item};
+    	  my $tdata = $pdoffs{$item};
         my $tlgth = length($tdata);
         
         while ($tlgth < 10)

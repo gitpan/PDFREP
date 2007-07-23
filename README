@@ -10,9 +10,9 @@ NAME
   DEVELOPMENT                                                                 
                                                                              
   STARTED                       26th June 2000                                
-  COMPLETED                     28th June 2001
+  COMPLETED                     23rd July 2007
                                                                              
-  VERSION                       1.01                                          
+  VERSION                       2.20                                          
                                                                              
   WRITTEN BY                    Trevor Ward                                   
                                                                              
@@ -29,6 +29,7 @@ NAME
   28/06/2001  1.00       TRW       Initial Version
   10/07/2001  1.01       TRW       Added Column Positioning.
   04/08/2005  2.00       TRW       Bug Fixes and new features
+  23/07/2007  2.20       TRW       Bracket and Makefile Bug Fixes
   
 INSTALLATION
 

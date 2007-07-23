@@ -9,17 +9,17 @@ my ($curr, $status, $message, $pdfrep);
 sub pdftest
 {
     # This call to CGI initialises all the required variables
-	
+
     $curr = CGI->new();
 
     # This sets up the PDF REP Module
 
     $pdfrep = PDFREP->new();
-  
+
     # This generates the HTML output for the test display page
-    
+
     my $text1 = param("SUBMIT");
-    
+
     print header();
     print start_html(-TITLE=>'Hello Trevor',-BGCOLOR=>'228b22',-TEXT=>'FFFFFF',-ALINK=>'FFFFFF',
                      -VLINK=>'FFFFFF');
@@ -46,7 +46,7 @@ sub pdftest
     my $filedir = "../";
     my $title   = "Test Document For JPG Files";
     my $author  = "Trevor Ward";
-  
+
     ($status, $message) = $pdfrep->heading($filenam, $filedir, $title, $author);
 
     # This is the error checking if failed files have to be closed and deleted by the PDFREP Package.
@@ -62,16 +62,16 @@ sub pdftest
     {
         print "$status - $message<BR>\n";
     }
-  
+
     # The next item to setup in generating the pdf file is the fonts used throughout the document.
     # This is done by calling FONTSET with two parameters.
     # 1 = The font reference name - this will be used when writing out the data
     # 2 = The font to be used i.e. Arial or Helvetica etc.
     #
     # For this example two fonts will be used as per the example above.
-    
+
     ($status, $message) = $pdfrep->fontset('F1','Helvetica');
-  
+
     if (!$status)
     {
         print "<BR><BR><h4>PDF FONT CREATION FAILED </h4>- $message<BR><BR>\n";
@@ -82,9 +82,9 @@ sub pdftest
     {
         print "$status - $message<BR>\n";
     }
-  
+
     ($status, $message) = $pdfrep->fontset('F2','Helvetica-Bold');
-  
+
     if (!$status)
     {
         print "<BR><BR><h4>PDF FONT CREATION FAILED </h4>- $message<BR><BR>\n";
@@ -187,35 +187,35 @@ sub pdftest
 
     # The following code uses the Chart module from CPAN to generate a PNG file which is a graph
     # of data. This is predomently why PDFREP was written.
-    
+
     use Chart::Composite;
     my $obj = new Chart::Composite (600,350);
 
     my %hash=('transparent'     => 'true',
-    	      'text_space'      => 5,
-	      'title'           => 'POWERTRAIN QUALITY STATUS Average over 9 CIPE Quality Tools',
-	      'x_label'         => 'Date',
-	      'y_label'         => '% Complete',
-       	      'legend'          => 'bottom',
-       	      'legend_labels'   => ['Target',
-       	    			    'Cat A Systems',
-	  			    'Other Systems',
-	  			    'Recovery Plan',
-  			            'Checkpoints'],
-       	      'tick_len'        => 3,
-       	      'y_ticks'         => 11,
-       	      'max_val'         => 100,
-       	      'min_val'         => 0,
-       	      'pt_size'         => 18,
-       	      'colors'          => {'x_grid_lines' => [255,255,255],
-       	                            'y_grid_lines' => [0,0,0]},
-       	      'grey_background' => 'false',
-       	      'grid_lines'      => 'false',
-       	      'brush_size'      => 3,
-       	      'pt_size'         => 20,
-       	      'composite_info'  => [['LinesPoints',[1,3,5]],['LinesPoints',[2,4]]],
-       	      'same_y_axes'     => 'true',
-       	      'no_cache'        => 'true');
+              'text_space'      => 5,
+              'title'           => 'POWERTRAIN QUALITY STATUS Average over 9 CIPE Quality Tools',
+              'x_label'         => 'Date',
+              'y_label'         => '% Complete',
+              'legend'          => 'bottom',
+              'legend_labels'   => ['Target',
+                                    'Cat A Systems',
+                                    'Other Systems',
+                                    'Recovery Plan',
+                                    'Checkpoints'],
+              'tick_len'        => 3,
+              'y_ticks'         => 11,
+              'max_val'         => 100,
+              'min_val'         => 0,
+              'pt_size'         => 18,
+              'colors'          => {'x_grid_lines' => [255,255,255],
+                                    'y_grid_lines' => [0,0,0]},
+              'grey_background' => 'false',
+              'grid_lines'      => 'false',
+              'brush_size'      => 3,
+              'pt_size'         => 20,
+              'composite_info'  => [['LinesPoints',[1,3,5]],['LinesPoints',[2,4]]],
+              'same_y_axes'     => 'true',
+              'no_cache'        => 'true');
 
     my @xticks=(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34);
     my @data0=(68,undef,undef,undef,undef,undef,undef,undef,undef,undef,undef,undef,undef,undef,undef,undef,undef,undef,undef,undef,undef,undef,undef,undef,undef,undef,80,undef,undef,undef,undef,undef,80,undef);#Target
@@ -229,14 +229,14 @@ sub pdftest
     $obj->png('../test1.png',\@stuff);
 
     # Using this PNG image now we can display it.
-    
+
     # the include image includes the image into the PDF file. It uses the physical file
     # on disc and can then be used at any point on any page.
-    
+
     $pdfrep->include_image('I1','test1.png','600','350', 'png', '../');
-    
+
     # This is the im option for displaying page data
-    
+
     ($status, $message) = $pdfrep->pagedata('im','0','12','F1','12','0','0','0','0','I1 600 350');
 
 #    ($status, $message) = $pdfrep->include_image('I2','cipetitle.jpg','300','60', 'jpg', '../');
@@ -254,7 +254,7 @@ sub pdftest
     ($status, $message) = $pdfrep->writepdf('A4','PO');
 
     my $fileout = $filedir . $filenam . ".pdf";
-  
+
     print br();
     print "\n\n";
     print ("<A href=$fileout>");
@@ -263,9 +263,8 @@ sub pdftest
     print ("</B></FONT>");
     print ("</A>");
     print "\n\n";
-  
+
     print end_html();  
     print "\n\n";
-  
 }
 1;
